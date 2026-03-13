@@ -5,21 +5,25 @@ using TaskManagementAPI.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Add services
 builder.Services.AddControllers();
 
+// Database connection
 builder.Services.AddDbContext<AppDbContext>(options =>
 options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
+// CORS
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAngular", policy =>
     {
         policy.AllowAnyOrigin()
-        .AllowAnyMethod()
-        .AllowAnyHeader();
+              .AllowAnyMethod()
+              .AllowAnyHeader();
     });
 });
 
+// JWT Authentication
 builder.Services.AddAuthentication("Bearer")
 .AddJwtBearer("Bearer", options =>
 {
@@ -30,17 +34,23 @@ builder.Services.AddAuthentication("Bearer")
         ValidateLifetime = true,
         ValidateIssuerSigningKey = true,
         IssuerSigningKey = new SymmetricSecurityKey(
-    Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
+            Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
     };
 });
 
 builder.Services.AddAuthorization();
 
+// Swagger services
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
+// Enable Swagger (IMPORTANT)
+app.UseSwagger();
+app.UseSwaggerUI();
+
+// Middleware
 app.UseHttpsRedirection();
 
 app.UseCors("AllowAngular");
