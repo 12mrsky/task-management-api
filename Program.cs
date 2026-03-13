@@ -11,7 +11,6 @@ builder.Services.AddControllers();
 // Database connection
 builder.Services.AddDbContext<AppDbContext>(options =>
 options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
-
 // CORS
 builder.Services.AddCors(options =>
 {
