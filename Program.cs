@@ -5,12 +5,14 @@ using TaskManagementAPI.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services
+// Controllers
 builder.Services.AddControllers();
 
-// Database connection
+// Database connection (PostgreSQL)
 builder.Services.AddDbContext<AppDbContext>(options =>
-options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"))
+);
+
 // CORS
 builder.Services.AddCors(options =>
 {
@@ -33,23 +35,24 @@ builder.Services.AddAuthentication("Bearer")
         ValidateLifetime = true,
         ValidateIssuerSigningKey = true,
         IssuerSigningKey = new SymmetricSecurityKey(
-            Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
+            Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!)
+        )
     };
 });
 
 builder.Services.AddAuthorization();
 
-// Swagger services
+// Swagger
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
-// Enable Swagger (IMPORTANT)
+// Swagger middleware
 app.UseSwagger();
 app.UseSwaggerUI();
 
-// Middleware
+// Middleware pipeline
 app.UseHttpsRedirection();
 
 app.UseCors("AllowAngular");
