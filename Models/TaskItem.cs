@@ -15,7 +15,7 @@ namespace TaskManagementAPI.Models
 
         public int AssignedTo { get; set; }
 
-        public DateTime DueDate { get; set; }
+        public DateTime? DueDate { get; set; }
 
         public DateTime CreatedDate { get; set; }
     }

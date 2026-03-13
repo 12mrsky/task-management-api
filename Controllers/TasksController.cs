@@ -9,7 +9,6 @@ namespace TaskManagementAPI.Controllers
     [ApiController]
     public class TasksController : ControllerBase
     {
-
         private readonly AppDbContext _context;
 
         public TasksController(AppDbContext context)
@@ -17,7 +16,7 @@ namespace TaskManagementAPI.Controllers
             _context = context;
         }
 
-        // GET TASKS (ADMIN = ALL TASKS, EMPLOYEE = OWN TASKS)
+        // GET TASKS
         [HttpGet]
         public async Task<IActionResult> GetTasks(int? userId)
         {
@@ -51,7 +50,15 @@ namespace TaskManagementAPI.Controllers
         [HttpPost]
         public async Task<IActionResult> AddTask(TaskItem task)
         {
-            task.CreatedDate = DateTime.Now;
+            // Check if assigned employee exists
+            var userExists = await _context.Users.AnyAsync(u => u.UserId == task.AssignedTo);
+
+            if (!userExists)
+            {
+                return BadRequest("Assigned employee does not exist");
+            }
+
+            task.CreatedDate = DateTime.UtcNow;
 
             _context.Tasks.Add(task);
             await _context.SaveChangesAsync();
@@ -89,11 +96,9 @@ namespace TaskManagementAPI.Controllers
                 return NotFound();
 
             _context.Tasks.Remove(task);
-
             await _context.SaveChangesAsync();
 
             return Ok();
         }
-
     }
 }
