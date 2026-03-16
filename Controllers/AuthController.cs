@@ -22,7 +22,6 @@ namespace TaskManagementAPI.Controllers
         [HttpPost("register")]
         public IActionResult Register(RegisterDTO dto)
         {
-
             var existingUser = _context.Users
                 .FirstOrDefault(x => x.Email == dto.Email);
 
@@ -36,7 +35,9 @@ namespace TaskManagementAPI.Controllers
                 Name = dto.Name,
                 Email = dto.Email,
                 Password = BCrypt.Net.BCrypt.HashPassword(dto.Password),
-                Role = "Employee"
+
+                // Accept role from request
+                Role = string.IsNullOrEmpty(dto.Role) ? "Employee" : dto.Role
             };
 
             _context.Users.Add(user);
@@ -44,7 +45,8 @@ namespace TaskManagementAPI.Controllers
 
             return Ok(new
             {
-                message = "User registered successfully"
+                message = "User registered successfully",
+                user.Role
             });
         }
 
@@ -95,10 +97,9 @@ namespace TaskManagementAPI.Controllers
                 .ToList();
 
             return Ok(employees);
-
         }
 
-        // GET ALL USERS (ADMIN)
+        // GET ALL USERS
         [HttpGet("users")]
         public IActionResult GetUsers()
         {
@@ -114,7 +115,6 @@ namespace TaskManagementAPI.Controllers
                 .ToList();
 
             return Ok(users);
-
         }
 
         // RESET PASSWORD
