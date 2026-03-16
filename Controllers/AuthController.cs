@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using TaskManagementAPI.Data;
 using TaskManagementAPI.Models;
+using TaskManagementAPI.DTOs;
+using BCrypt.Net;
 
 namespace TaskManagementAPI.Controllers
 {
@@ -18,47 +20,62 @@ namespace TaskManagementAPI.Controllers
 
         // REGISTER USER
         [HttpPost("register")]
-        public IActionResult Register(User user)
+        public IActionResult Register(RegisterDTO dto)
         {
 
             var existingUser = _context.Users
-                .FirstOrDefault(x => x.Email == user.Email);
+                .FirstOrDefault(x => x.Email == dto.Email);
 
             if (existingUser != null)
             {
                 return BadRequest("Email already exists");
             }
 
+            var user = new User
+            {
+                Name = dto.Name,
+                Email = dto.Email,
+                Password = BCrypt.Net.BCrypt.HashPassword(dto.Password),
+                Role = "Employee"
+            };
+
             _context.Users.Add(user);
             _context.SaveChanges();
 
-            return Ok(user);
+            return Ok(new
+            {
+                message = "User registered successfully"
+            });
         }
 
         // LOGIN USER
         [HttpPost("login")]
-        public IActionResult Login(User login)
+        public IActionResult Login(LoginDTO dto)
         {
 
             var user = _context.Users
-                .FirstOrDefault(x =>
-                    x.Email == login.Email &&
-                    x.Password == login.Password);
+                .FirstOrDefault(x => x.Email == dto.Email);
 
             if (user == null)
             {
                 return Unauthorized("Invalid email or password");
             }
 
+            bool passwordValid = BCrypt.Net.BCrypt.Verify(dto.Password, user.Password);
+
+            if (!passwordValid)
+            {
+                return Unauthorized("Invalid email or password");
+            }
+
             return Ok(new
             {
-                token = "fake-jwt-token", // required for Angular
+                token = "fake-jwt-token",
                 userId = user.UserId,
                 name = user.Name,
                 email = user.Email,
                 role = user.Role
             });
-
         }
 
         // GET EMPLOYEES
@@ -72,12 +89,68 @@ namespace TaskManagementAPI.Controllers
                 {
                     x.UserId,
                     x.Name,
-                    x.Email
+                    x.Email,
+                    x.Role
                 })
                 .ToList();
 
             return Ok(employees);
 
+        }
+
+        // GET ALL USERS (ADMIN)
+        [HttpGet("users")]
+        public IActionResult GetUsers()
+        {
+
+            var users = _context.Users
+                .Select(u => new
+                {
+                    u.UserId,
+                    u.Name,
+                    u.Email,
+                    u.Role
+                })
+                .ToList();
+
+            return Ok(users);
+
+        }
+
+        // RESET PASSWORD
+        [HttpPut("reset-password/{id}")]
+        public IActionResult ResetPassword(int id, [FromBody] ResetPasswordDto dto)
+        {
+
+            var user = _context.Users.FirstOrDefault(u => u.UserId == id);
+
+            if (user == null)
+                return NotFound("User not found");
+
+            if (string.IsNullOrEmpty(dto.NewPassword))
+                return BadRequest("Password cannot be empty");
+
+            user.Password = BCrypt.Net.BCrypt.HashPassword(dto.NewPassword);
+
+            _context.SaveChanges();
+
+            return Ok("Password reset successfully");
+        }
+
+        // DELETE USER
+        [HttpDelete("users/{id}")]
+        public IActionResult DeleteUser(int id)
+        {
+
+            var user = _context.Users.Find(id);
+
+            if (user == null)
+                return NotFound("User not found");
+
+            _context.Users.Remove(user);
+            _context.SaveChanges();
+
+            return Ok("User deleted successfully");
         }
 
     }

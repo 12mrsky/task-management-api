@@ -5,39 +5,48 @@ using TaskManagementAPI.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// ----------------------
+// Add Services
+// ----------------------
+
 // Controllers
 builder.Services.AddControllers();
 
-// Database connection (PostgreSQL)
+// PostgreSQL Database
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"))
+options.UseNpgsql(
+builder.Configuration.GetConnectionString("DefaultConnection")
+)
 );
 
-// CORS
+// CORS Policy (Allow Angular + Render frontend)
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowAngular", policy =>
-    {
-        policy.AllowAnyOrigin()
-              .AllowAnyMethod()
-              .AllowAnyHeader();
-    });
+options.AddPolicy("AllowAngular", policy =>
+{
+policy
+.AllowAnyOrigin()
+.AllowAnyMethod()
+.AllowAnyHeader();
+});
 });
 
 // JWT Authentication
 builder.Services.AddAuthentication("Bearer")
 .AddJwtBearer("Bearer", options =>
 {
-    options.TokenValidationParameters = new TokenValidationParameters
-    {
-        ValidateIssuer = false,
-        ValidateAudience = false,
-        ValidateLifetime = true,
-        ValidateIssuerSigningKey = true,
-        IssuerSigningKey = new SymmetricSecurityKey(
-            Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!)
-        )
-    };
+options.TokenValidationParameters = new TokenValidationParameters
+{
+ValidateIssuer = false,
+ValidateAudience = false,
+ValidateLifetime = true,
+ValidateIssuerSigningKey = true,
+IssuerSigningKey = new SymmetricSecurityKey(
+Encoding.UTF8.GetBytes(
+builder.Configuration["Jwt:Key"]!
+)
+)
+};
 });
 
 builder.Services.AddAuthorization();
@@ -48,18 +57,26 @@ builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
-// Swagger middleware
+// ----------------------
+// Middleware Pipeline
+// ----------------------
+
+// Swagger (Enable in development + production for testing API)
 app.UseSwagger();
 app.UseSwaggerUI();
 
-// Middleware pipeline
+// HTTPS
 app.UseHttpsRedirection();
 
+// Enable CORS BEFORE authentication
 app.UseCors("AllowAngular");
 
+// JWT Middleware
 app.UseAuthentication();
 app.UseAuthorization();
 
+// Map Controllers
 app.MapControllers();
 
+// Start Application
 app.Run();

@@ -281,3 +281,4 @@ C:\Users\SKY\source\repos\task-management-system\TaskManagementAPI\TaskManagemen
 C:\Users\SKY\source\repos\task-management-system\TaskManagementAPI\TaskManagementAPI\obj\Debug\net8.0\TaskManagementAPI.pdb
 C:\Users\SKY\source\repos\task-management-system\TaskManagementAPI\TaskManagementAPI\obj\Debug\net8.0\TaskManagementAPI.genruntimeconfig.cache
 C:\Users\SKY\source\repos\task-management-system\TaskManagementAPI\TaskManagementAPI\obj\Debug\net8.0\ref\TaskManagementAPI.dll
+C:\Users\SKY\source\repos\task-management-system\TaskManagementAPI\TaskManagementAPI\bin\Debug\net8.0\BCrypt.Net-Next.dll
